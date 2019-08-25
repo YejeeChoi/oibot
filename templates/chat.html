@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ko">
+<head>
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+
+    <!-- 구글 폰트-->
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR&display=swap&subset=korean" rel="stylesheet">
+
+	<!-- JS -->
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+	<link rel="stylesheet" href="{{url_for('static', filename='css/chat.css')}}">
+	
+	<script>
+
+		function send_message(){
+			$('#query').empty('');
+			var message = $('#query').val();
+			$.ajax({
+				type: "GET",
+				url: "/time",
+				data: {},
+				success: function(result){
+					if (result['result'] == 'success'){
+						var nowTime = result['time'];
+						var container_send = '<div class="container darker" id=send>\
+							<p align="right">'+message+'</p>\
+							<span class="time-right">'+nowTime+'</span>\
+						</div>'
+
+						$('#conversation').append(container_send);
+						$('#conversation').scrollTop($('#conversation')[0].scrollHeight);
+					} else{
+						alert('혹시, 시간을 거스르는 자..?');
+					}
+				}
+        	})
+			$.ajax({
+				type: "POST",
+				url: "/chat",
+				data: {query_give: message},
+				success: function(result){
+					if (result['result'] == 'success'){
+						get_chat()
+					} else{
+						alert('너의 말은 오이에게 닿지 않았다!');
+					}
+				}
+			})
+			$("#query").val("");
+		}
+
+		function get_chat(){
+			$.ajax({
+				type: "GET",
+				url: "/chat",
+				data: {},
+				success: function(result){
+					var chats = result['conversation']
+					var receive = chats['receive']
+					var nowTime = result['time']
+					if (result['result'] == 'success'){
+						chat_receive(receive, nowTime)
+					} else{
+						alert('너의 말은 오이에게 닿지 않았다!');
+					}
+				}
+			})
+		}
+
+
+		function chat_receive(receive, nowTime){
+
+			var time_delay = receive.length
+
+			setTimeout(function(){
+				var container_receive = '<div class="container" id="receive">\
+				<img src="static/img/cucumber.jpg" alt="Avatar">\
+				<p>'+receive+'</p>\
+				<span class="time-left">'+nowTime+'</span>\
+			</div>'
+
+			$('#conversation').append(container_receive);
+			$("#query").focus();
+			$('#conversation').scrollTop($('#conversation')[0].scrollHeight);
+			}, time_delay*30);
+		}
+		
+		function greeting(){
+			var greeting =  ["하이, 헬로, 안녕하세요!", "안녕하심미꽈 오이임미다", "오늘 하루도 오잇오잇입니다!", "오잇오잇", "오잇오잇, 뭐해요?"]
+			var hello = greeting[Math.floor(Math.random()*greeting.length)];
+			$('#greeting').text(hello)
+			$.ajax({
+				type: "GET",
+				url: "/time",
+				data: {},
+				success: function(result){
+					if (result['result'] == 'success'){
+						var nowTime = result['time'];
+						$('#nowtime').text(nowTime)
+					} else{
+						alert('혹시, 시간을 거스르는 자..?');
+					}
+				}
+        	})			
+		}
+
+		window.onload=function(){
+        	greeting();
+        }
+        $(document).ready(function(){ 
+        	$("#query").focus();
+        });
+
+        $(document).keydown(function(event) {
+		  	if (event.keyCode == '13') {
+		    	send_message()
+		  	}
+		});
+
+	</script>
+
+
+	<title>오이톡🥒</title>
+
+</head>		
+<body>
+	<div class = "oibot">
+		<H3>언제나 즐거운 오이봇🥒</H3>
+	</div>
+	<div class = "chatroom">
+		<div id="conversation" class ="container-box">
+			<div class="container" id=receive>
+				<img src="static/img/cucumber.jpg" alt="Avatar">
+				<p id=greeting>안녕! 하와유?</p>
+				<span class="time-left" id=nowtime>11:00</span>
+			</div>
+		</div>				
+		<div class="input-group mb-3">
+			<input id="query" type="text" class="form-control" placeholder="오이는 오잇오잇🥒" aria-label="query_send" aria-describedby="button-addon2">
+			<div class="input-group-append" style="float: left">
+		    	<button class="btn btn-outline-secondary" type="button" onclick="send_message()">Send</button>
+		  	</div>
+		</div>
+	</div>
+</body>
+</html>
